@@ -4,7 +4,6 @@ import { AuthProvider, useAuth } from './lib/auth'
 import { supabase } from './lib/supabase'
 import Landing from './pages/Landing'
 import Auth from './pages/Auth'
-import ResetPassword from './pages/ResetPassword'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
 
@@ -45,10 +44,7 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/signin" element={<Auth mode="signin" />} />
-          <Route path="/signup" element={<Auth mode="signup" />} />
-          <Route path="/forgot-password" element={<Auth mode="forgot" />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/signin" element={<Auth />} />
           <Route path="/onboarding" element={<Protected needOnboarded={false}>{() => <Onboarding />}</Protected>} />
           <Route path="/app" element={<Protected needOnboarded>{(me) => <Dashboard name={me.name} />}</Protected>} />
           <Route path="*" element={<Navigate to="/" replace />} />

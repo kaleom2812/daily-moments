@@ -12,8 +12,7 @@ export default function Landing() {
       <header className="flex items-center justify-between py-5">
         <span className="font-serif text-xl font-semibold">Daily Moments</span>
         <nav className="flex items-center gap-4 text-sm font-medium">
-          <Link to="/signin" className="py-3">Sign in</Link>
-          <Link to="/signup" className="rounded-full bg-ink px-5 py-2.5 text-paper">Get started</Link>
+          <Link to="/signin" className="rounded-full bg-ink px-5 py-2.5 text-paper">Sign in</Link>
         </nav>
       </header>
 
@@ -27,10 +26,10 @@ export default function Landing() {
             Take a handful of unplanned photos. We gather them at the end of the day into a ready-to-review Instagram carousel.
           </p>
           <Link
-            to="/signup"
+            to="/signin"
             className="mt-8 inline-flex min-h-12 items-center rounded-full bg-accent px-8 font-semibold text-white hover:bg-accent-dark"
           >
-            Start your first day
+            Open your journal
           </Link>
         </section>
 
