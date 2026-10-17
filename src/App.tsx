@@ -45,8 +45,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/signin" element={<Auth />} />
-          <Route path="/onboarding" element={<Protected needOnboarded={false}>{() => <Onboarding />}</Protected>} />
-          <Route path="/app" element={<Protected needOnboarded>{(me) => <Dashboard name={me.name} />}</Protected>} />
+          <Route path="/onboarding" element={<Protected key="onboarding" needOnboarded={false}>{() => <Onboarding />}</Protected>} />
+          <Route path="/app" element={<Protected key="app" needOnboarded>{(me) => <Dashboard name={me.name} />}</Protected>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
