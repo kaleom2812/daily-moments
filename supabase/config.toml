@@ -419,3 +419,7 @@ enabled = true
 verify_jwt = false
 [functions.replan-me]
 verify_jwt = false
+[functions.generate-draft]
+verify_jwt = false
+[functions.draft-tick]
+verify_jwt = false

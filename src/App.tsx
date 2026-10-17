@@ -6,6 +6,7 @@ import Landing from './pages/Landing'
 import Auth from './pages/Auth'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
+import Review from './pages/Review'
 
 type Me = { name: string; onboarded: boolean }
 
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/signin" element={<Auth />} />
           <Route path="/onboarding" element={<Protected key="onboarding" needOnboarded={false}>{() => <Onboarding />}</Protected>} />
           <Route path="/app" element={<Protected key="app" needOnboarded>{(me) => <Dashboard name={me.name} />}</Protected>} />
+          <Route path="/review/:id" element={<Protected key="review" needOnboarded>{() => <Review />}</Protected>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

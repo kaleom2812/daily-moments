@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { loadDay, type Photo } from '../lib/photos'
 import { localDate, minutesUntil } from '../lib/time'
@@ -6,6 +7,8 @@ import Camera from '../components/Camera'
 import Gallery from '../components/Gallery'
 import NotificationsCard from '../components/NotificationsCard'
 import { replanReminders } from '../lib/push'
+import { Link } from 'react-router-dom'
+import { generate, listDrafts, statusLabel, type Draft } from '../lib/drafts'
 import { Button, Notice } from '../components/ui'
 
 type Settings = { daily_target: number; timezone: string; review_time: string }
@@ -17,11 +20,14 @@ function untilText(min: number | null) {
 }
 
 export default function Dashboard({ name }: { name: string }) {
+  const nav = useNavigate()
   const [s, setS] = useState<Settings | null>(null)
   const [photos, setPhotos] = useState<Item[]>([])
   const [camera, setCamera] = useState(false)
   const [error, setError] = useState('')
   const [next, setNext] = useState<string | null>(null)
+  const [drafts, setDrafts] = useState<Draft[]>([])
+  const [making, setMaking] = useState(false)
 
   // Tapping a push opens /app?reminder=<id>: record that it was opened, then tidy the URL.
   useEffect(() => {
@@ -51,6 +57,22 @@ export default function Dashboard({ name }: { name: string }) {
     }
   }, [s])
   useEffect(() => { refresh() }, [refresh])
+  useEffect(() => { listDrafts().then(setDrafts).catch((e) => setError(e.message)) }, [])
+
+  async function makeDraft() {
+    setMaking(true)
+    setError('')
+    try {
+      const r = await generate('all')
+      if (r.status === 'insufficient') setError('Capture at least one photo first.')
+      else if (r.status === 'failed') setError(`Draft failed: ${r.error}. Your photos are safe; try again.`)
+      else if (r.draftId) nav(`/review/${r.draftId}`)
+      setDrafts(await listDrafts())
+    } catch (e) {
+      setError((e as Error).message)
+    }
+    setMaking(false)
+  }
 
   if (!s) return <main className="p-8">{error ? <Notice kind="error">{error}</Notice> : 'Loading…'}</main>
 
@@ -99,7 +121,20 @@ export default function Dashboard({ name }: { name: string }) {
 
       <section aria-labelledby="posts">
         <h2 id="posts" className="mb-3 font-serif text-2xl">Recent posts</h2>
-        <p className="text-muted">Your daily posts will appear here once end-of-day drafts are switched on.</p>
+        {drafts.length === 0 && <p className="text-muted">No posts yet. A draft is created automatically at your review time, or make one now.</p>}
+        <ul className="space-y-2">
+          {drafts.map((d) => (
+            <li key={d.id}>
+              <Link to={`/review/${d.id}`} className="flex min-h-11 items-center justify-between rounded-xl border border-line bg-white px-4 py-3">
+                <span>{new Date(d.local_date + 'T12:00:00').toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                <span className="text-sm text-muted">{statusLabel[d.status]}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        {count > 0 && !drafts.some((d) => d.local_date === localDate(s.timezone)) && (
+          <Button onClick={makeDraft} disabled={making} className="mt-3">{making ? 'Creating…' : "Create today's draft"}</Button>
+        )}
       </section>
 
       {camera && <Camera onClose={() => setCamera(false)} onUploaded={() => { refresh(); replanReminders() }} />}
