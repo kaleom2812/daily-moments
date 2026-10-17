@@ -413,3 +413,9 @@ enabled = true
 # formatted with uppercase keywords, indent 2, max width 180, trailing commas,
 # and column/key alignment. Set to "null" to emit raw, unformatted SQL.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":180,\"commaStyle\":\"trailing\"}"
+
+# Auth is verified inside the functions (user JWT / cron secret), not by the gateway.
+[functions.reminder-tick]
+verify_jwt = false
+[functions.replan-me]
+verify_jwt = false

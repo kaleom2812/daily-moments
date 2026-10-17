@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../lib/auth'
+import { replanReminders } from '../lib/push'
 import { Button, Field, Notice } from '../components/ui'
 
 const zones: string[] = Intl.supportedValuesOf('timeZone')
@@ -40,7 +41,10 @@ export default function Onboarding() {
     if (err) {
       setError(err.message)
       setBusy(false)
-    } else nav('/app', { replace: true })
+    } else {
+      replanReminders() // best effort; the server also plans on its own schedule
+      nav('/app', { replace: true })
+    }
   }
 
   return (

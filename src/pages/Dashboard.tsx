@@ -4,6 +4,8 @@ import { loadDay, type Photo } from '../lib/photos'
 import { localDate, minutesUntil } from '../lib/time'
 import Camera from '../components/Camera'
 import Gallery from '../components/Gallery'
+import NotificationsCard from '../components/NotificationsCard'
+import { replanReminders } from '../lib/push'
 import { Button, Notice } from '../components/ui'
 
 type Settings = { daily_target: number; timezone: string; review_time: string }
@@ -19,6 +21,21 @@ export default function Dashboard({ name }: { name: string }) {
   const [photos, setPhotos] = useState<Item[]>([])
   const [camera, setCamera] = useState(false)
   const [error, setError] = useState('')
+  const [next, setNext] = useState<string | null>(null)
+
+  // Tapping a push opens /app?reminder=<id>: record that it was opened, then tidy the URL.
+  useEffect(() => {
+    const id = new URLSearchParams(location.search).get('reminder')
+    if (!id) return
+    supabase.from('reminder_schedules').update({ opened_at: new Date().toISOString() }).eq('id', id).is('opened_at', null).then(() => {})
+    history.replaceState(null, '', '/app')
+  }, [])
+
+  useEffect(() => {
+    supabase.from('reminder_schedules').select('scheduled_for').eq('status', 'scheduled')
+      .gt('scheduled_for', new Date().toISOString()).order('scheduled_for').limit(1)
+      .then(({ data }) => setNext(data?.[0]?.scheduled_for ?? null))
+  }, [photos])
 
   useEffect(() => {
     supabase.from('user_settings').select('daily_target, timezone, review_time').single()
@@ -64,10 +81,16 @@ export default function Dashboard({ name }: { name: string }) {
           <div className="h-full bg-accent transition-all" style={{ width: `${pct}%` }} />
         </div>
         <p className="mt-3 text-sm text-muted">
-          {count >= s.daily_target ? 'Target reached. Anything extra is a bonus.' : 'Reminders are not scheduled yet; capture whenever a moment strikes.'}
+          {count >= s.daily_target
+            ? 'Target reached. Anything extra is a bonus.'
+            : next
+              ? `Next reminder around ${new Date(next).toLocaleTimeString([], { timeZone: s.timezone, hour: 'numeric', minute: '2-digit' })}`
+              : 'No more reminders scheduled today. Capture whenever a moment strikes.'}
         </p>
         <Button onClick={() => setCamera(true)} className="mt-5 w-full sm:w-auto">Capture a photo</Button>
       </section>
+
+      <NotificationsCard />
 
       <section aria-labelledby="gal">
         <h2 id="gal" className="mb-3 font-serif text-2xl">Today</h2>
@@ -79,7 +102,7 @@ export default function Dashboard({ name }: { name: string }) {
         <p className="text-muted">Your daily posts will appear here once end-of-day drafts are switched on.</p>
       </section>
 
-      {camera && <Camera onClose={() => setCamera(false)} onUploaded={refresh} />}
+      {camera && <Camera onClose={() => setCamera(false)} onUploaded={() => { refresh(); replanReminders() }} />}
     </main>
   )
 }
